@@ -2249,6 +2249,61 @@ namespace VectorTools
                                p,
                                rhs_vector);
   }
+  
+  
+  
+   template <int dim, int spacedim>
+  void
+  create_point_source_vector(const Mapping<dim, spacedim> &   mapping,
+                             const DoFHandler<dim, spacedim> &dof_handler,
+                             const Point<spacedim> &          p,
+                             const unsigned int                comp,
+                             Vector<double> &                 rhs_vector)
+  {
+    Assert(rhs_vector.size() == dof_handler.n_dofs(),
+           ExcDimensionMismatch(rhs_vector.size(), dof_handler.n_dofs()));
+    Assert(dof_handler.get_fe(0).n_components() < comp,
+           ExcMessage("This function only works for finite elements with at least comp components"));
+
+    rhs_vector = 0;
+
+    std::pair<typename DoFHandler<dim, spacedim>::active_cell_iterator,
+              Point<spacedim>>
+      cell_point =
+        GridTools::find_active_cell_around_point(mapping, dof_handler, p);
+
+    Quadrature<dim> q(
+      GeometryInfo<dim>::project_to_unit_cell(cell_point.second));
+
+    FEValues<dim, spacedim> fe_values(mapping,
+                                      dof_handler.get_fe(),
+                                      q,
+                                      UpdateFlags(update_values));
+    fe_values.reinit(cell_point.first);
+
+    const unsigned int dofs_per_cell = dof_handler.get_fe().dofs_per_cell;
+
+    std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
+    cell_point.first->get_dof_indices(local_dof_indices);
+
+    for (unsigned int i = 0; i < dofs_per_cell; i++)
+      if (dof_handler.get_fe().system_to_component_index(i).first == comp) rhs_vector(local_dof_indices[i]) = fe_values.shape_value(i, 0);
+  }
+
+
+
+  template <int dim, int spacedim>
+  void
+  create_point_source_vector(const DoFHandler<dim, spacedim> &dof_handler,
+                             const Point<spacedim> &          p,
+                             Vector<double> &                 rhs_vector)
+  {
+    create_point_source_vector(StaticMappingQ1<dim, spacedim>::mapping,
+                               dof_handler,
+                               p,
+                               comp,
+                               rhs_vector);
+  }
 
 
   template <int dim, int spacedim>

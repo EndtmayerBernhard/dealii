@@ -2191,6 +2191,29 @@ namespace VectorTools
                              const Point<spacedim> &          p,
                              Vector<double> &                 rhs_vector);
 
+  
+    /**
+   * Same for the vector valued case, just evaluating at component comp.
+   */
+    template <int dim, int spacedim>
+  void
+  create_point_source_vector(const Mapping<dim, spacedim> &   mapping,
+                             const DoFHandler<dim, spacedim> &dof_handler,
+                             const Point<spacedim> &          p,
+                             unsigned int                comp,
+                             Vector<double> &                 rhs_vector);
+  
+    /**
+   * Call the create_point_source_vector() function, see above, with
+   * an implied default $Q_1$ mapping object.
+   */
+  
+      template <int dim, int spacedim>
+  void
+  create_point_source_vector( const DoFHandler<dim, spacedim> &dof_handler,
+                             const Point<spacedim> &          p,
+                             unsigned int                comp,
+                             Vector<double> &                 rhs_vector);
   /**
    * Like the previous set of functions, but for hp objects.
    */
